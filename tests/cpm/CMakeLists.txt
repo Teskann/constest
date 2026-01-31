@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 23)
 
 include(../../cmake/CPM.cmake)
 
-CPMAddPackage("gh:teskann/constest#cpm")
+CPMAddPackage("gh:teskann/constest#master")
 CPMAddPackage("gh:google/googletest@1.17.0")
 
 add_executable(simple_test test.cpp)

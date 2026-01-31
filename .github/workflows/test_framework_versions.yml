@@ -1,4 +1,4 @@
-name: Various framework versions
+name: Testing framework support
 
 on:
   push:

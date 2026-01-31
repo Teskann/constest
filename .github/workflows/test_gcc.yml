@@ -1,0 +1,37 @@
+name: gcc
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        gcc_version: [ 14 ]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install GCC ${{ matrix.gcc_version }}
+        run: |
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+          sudo apt-get update
+          sudo apt-get install -y g++-${{ matrix.gcc_version }}
+
+      - name: Configure CMake
+        env:
+          CC: gcc-${{ matrix.gcc_version }}
+          CXX: g++-${{ matrix.gcc_version }}
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release -j $(nproc)
+
+      - name: Test
+        working-directory: build
+        run: ctest --output-on-failure -C Release -j $(nproc)

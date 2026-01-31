@@ -1,0 +1,33 @@
+name: msvc
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            vs_version: '17 2022'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Configure CMake
+        run: cmake -B build -G "Visual Studio ${{ matrix.vs_version }}"
+
+      - name: Build
+        run: cmake --build build --config Release -j $(nproc)
+
+      - name: Test
+        working-directory: build
+        run: ctest --output-on-failure -C Release -j $(nproc)

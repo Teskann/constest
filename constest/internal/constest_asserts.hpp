@@ -18,10 +18,12 @@ inline void constexpr_assertion_failure() {}
         this_macro_should_be_used_inside_a_CONSTEXPR_SECTION = "This macro should be used inside a CONSTEXPR_SECTION"; \
         CONSTEST_INTERNAL_IF_CONSTEVAL                                                                                 \
         {                                                                                                              \
+            CONSTEST_INTERNAL_DISABLE_MSVC_C4127                                                                       \
             if (!(success_condition))                                                                                  \
-            {                                                                                                          \
-                ::constest::constexpr_assertion_failure();                                                             \
-            }                                                                                                          \
+                CONSTEST_INTERNAL_RESTORE_MSVC_C4127                                                                   \
+                {                                                                                                      \
+                    ::constest::constexpr_assertion_failure();                                                         \
+                }                                                                                                      \
         }                                                                                                              \
         else                                                                                                           \
         {                                                                                                              \

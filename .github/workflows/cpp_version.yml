@@ -1,0 +1,37 @@
+name: C++20, C++23, C++26
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        cpp_version: [ 20, 23, 26 ]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install GCC 14
+        run: |
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+          sudo apt-get update
+          sudo apt-get install -y g++-14
+
+      - name: Configure CMake
+        env:
+          CC: gcc-14
+          CXX: g++-14
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_STANDARD=${{ matrix.cpp_version }}
+
+      - name: Build
+        run: cmake --build build --config Release -j $(nproc)
+
+      - name: Test
+        working-directory: build
+        run: ctest --output-on-failure -C Release -j $(nproc)

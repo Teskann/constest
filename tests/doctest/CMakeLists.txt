@@ -1,5 +1,11 @@
 # doctest
-CPMAddPackage("gh:doctest/doctest@2.4.11")
+set(CONSTEST_DOCTEST_VERSION "2.4.12" CACHE STRING "Version of doctest to use")
+if (CONSTEST_DOCTEST_VERSION VERSION_LESS "2.4.8")
+    set(DOCTEST_TAG_PREFIX "")
+else ()
+    set(DOCTEST_TAG_PREFIX "v")
+endif ()
+CPMAddPackage("gh:doctest/doctest#${DOCTEST_TAG_PREFIX}${CONSTEST_DOCTEST_VERSION}")
 
 add_executable(doctest_tests test_doctest.cpp test_doctest_macros.cpp)
 target_compile_definitions(doctest_tests PRIVATE CONSTEST_CONFIG_DOCTEST)

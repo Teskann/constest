@@ -1,5 +1,7 @@
 # Catch2 tests
-CPMAddPackage("gh:catchorg/Catch2@3.5.2")
+set(CONSTEST_CATCH2_VERSION "3.12.0" CACHE STRING "Version of Catch2 to use")
+CPMAddPackage("gh:catchorg/Catch2@${CONSTEST_CATCH2_VERSION}")
+
 
 add_executable(catch2_tests test_catch2.cpp test_catch2_macros.cpp)
 target_compile_definitions(catch2_tests PRIVATE CONSTEST_CONFIG_CATCH2)

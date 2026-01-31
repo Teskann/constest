@@ -1,0 +1,79 @@
+name: Various framework versions
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  GCC_VERSION: 14
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Minimum supported versions
+          - doctest: "2.4.6"
+            catch2: "3.3.0"
+            gtest: "1.8.1"
+            boost: "1.81.0"
+
+          - doctest: "2.4.8"
+            catch2: "3.4.0"
+            gtest: "1.11.0"
+            boost: "1.83.0"
+
+          - doctest: "2.4.9"
+            catch2: "3.5.0"
+            gtest: "1.12.1"
+            boost: "1.84.0"
+
+          - doctest: "2.4.10"
+            catch2: "3.6.0"
+            gtest: "1.13.0"
+            boost: "1.85.0"
+
+          - doctest: "2.4.11"
+            catch2: "3.7.0"
+            gtest: "1.14.0"
+            boost: "1.86.0"
+
+          # Latest supported versions
+          - doctest: "2.4.12"
+            catch2: "3.12.0"
+            gtest: "1.17.0"
+            boost: "1.90.0"
+
+    name: doctest-${{ matrix.doctest }}_catch2-${{ matrix.catch2 }}_gtest-${{ matrix.gtest }}_boost-${{ matrix.boost }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install GCC ${{ env.GCC_VERSION }}
+        run: |
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+          sudo apt-get update
+          sudo apt-get install -y g++-${{ env.GCC_VERSION }}        
+
+      - name: Configure CMake with custom framework versions
+        env:
+          CC: gcc-${{ env.GCC_VERSION }}
+          CXX: g++-${{ env.GCC_VERSION }}
+        run: |
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCONSTEST_DOCTEST_VERSION=${{ matrix.doctest }} \
+            -DCONSTEST_CATCH2_VERSION=${{ matrix.catch2 }} \
+            -DCONSTEST_GTEST_VERSION=${{ matrix.gtest }} \
+            -DCONSTEST_BOOST_VERSION=${{ matrix.boost }}
+
+      - name: Build
+        run: cmake --build build --config Release -j $(nproc)
+
+      - name: Test
+        working-directory: build
+        run: ctest --output-on-failure -C Release -j $(nproc)

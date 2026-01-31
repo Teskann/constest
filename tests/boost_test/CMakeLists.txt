@@ -1,8 +1,17 @@
 # Boost.Test
+set(CONSTEST_BOOST_VERSION "1.90.0" CACHE STRING "Version of Boost to use")
+
+# Boost >= 1.85.0 requires -cmake suffix
+if (CONSTEST_BOOST_VERSION VERSION_GREATER_EQUAL "1.85.0")
+    set(BOOST_URL_SUFFIX "-cmake")
+else ()
+    set(BOOST_URL_SUFFIX "")
+endif ()
+
 CPMAddPackage(
         NAME Boost
-        VERSION 1.84.0
-        URL https://github.com/boostorg/boost/releases/download/boost-1.84.0/boost-1.84.0.tar.xz
+        VERSION ${CONSTEST_BOOST_VERSION}
+        URL https://github.com/boostorg/boost/releases/download/boost-${CONSTEST_BOOST_VERSION}/boost-${CONSTEST_BOOST_VERSION}${BOOST_URL_SUFFIX}.tar.xz
         OPTIONS "BOOST_ENABLE_CMAKE ON" "BOOST_INCLUDE_LIBRARIES test"
 )
 

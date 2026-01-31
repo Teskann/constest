@@ -1,0 +1,26 @@
+name: CPM
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test-cpm:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure CMake
+        working-directory: tests/cpm
+        run: cmake -B build
+
+      - name: Build
+        working-directory: tests/cpm
+        run: cmake --build build
+
+      - name: Run tests
+        working-directory: tests/cpm
+        run: ctest --test-dir build --output-on-failure

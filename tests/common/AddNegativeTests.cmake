@@ -36,6 +36,7 @@ endfunction()
 function(_add_compile_fail_test TARGET_NAME TEST_FILE TEST_NAME)
     set(TEST_COMMAND python ${CMAKE_HOME_DIRECTORY}/tests/common/test_compile_fail.py
             --cpp-file ${TEST_FILE}
+            --compiler-name ${CMAKE_CXX_COMPILER_ID}
             --build ${CMAKE_BINARY_DIR}
             --target ${TARGET_NAME})
 

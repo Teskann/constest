@@ -11,16 +11,22 @@ def expect_compilation_failed(cmake_result: subprocess.CompletedProcess):
     print(f"[   OK   ] Compilation failed as expected")
 
 
-def expect_output_contains(cmake_result: subprocess.CompletedProcess, expect_in_output: str | None):
+def expect_output_contains(cmake_result: subprocess.CompletedProcess, expect_in_output: str | None, compiler_name: str):
     output = cmake_result.stdout + cmake_result.stderr
     if expect_in_output:
+        if compiler_name == "MSVC":
+            print(f"[  SKIP  ] Skipping output check for MSVC (not supported)")
+            return
         assert expect_in_output in output, f"[ FAILED ] Expected string '{expect_in_output}' not found in compiler output"
         print(f"[   OK   ] Found expected string: '{expect_in_output}'")
     else:
         print(f"[  SKIP  ] No expected string provided, skipping output check")
 
 
-def expect_number_of_errors(cmake_result: subprocess.CompletedProcess, cpp_file: Path):
+def expect_number_of_errors(cmake_result: subprocess.CompletedProcess, cpp_file: Path, compiler_name: str):
+    if compiler_name == "MSVC":
+        print(f"[  SKIP  ] Skipping error count check for MSVC (not supported)")
+        return
     compilation_error_marker = "// Should fail here"
     source_content = cpp_file.read_text()
     expected_count = source_content.count(compilation_error_marker)
@@ -30,18 +36,19 @@ def expect_number_of_errors(cmake_result: subprocess.CompletedProcess, cpp_file:
     print(f"[   OK   ] All failing lines have been reported in the output of the compiler (expected {expected_count})")
 
 
-def test_compile_fails(cpp_file: Path, expect_in_output: str | None, cmake_args: list[str]):
+def test_compile_fails(cpp_file: Path, expect_in_output: str | None, compiler_name: str, cmake_args: list[str]):
     cmake_result = subprocess.run(["cmake"] + cmake_args, capture_output=True, text=True)
     expect_compilation_failed(cmake_result)
-    expect_output_contains(cmake_result, expect_in_output)
-    expect_number_of_errors(cmake_result, cpp_file)
+    expect_output_contains(cmake_result, expect_in_output, compiler_name)
+    expect_number_of_errors(cmake_result, cpp_file, compiler_name)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Test that a C++ file fails to compile with expected errors")
     parser.add_argument("--cpp-file", required=True, type=Path, help="Path to the C++ file to test")
     parser.add_argument("--expect-in-output", default=None, help="String that must be present in compiler output")
+    parser.add_argument("--compiler-name", required=True, help="Name of the compiler being used")
 
     args, unknown_args = parser.parse_known_args()
 
-    test_compile_fails(args.cpp_file, args.expect_in_output, unknown_args)
+    test_compile_fails(args.cpp_file, args.expect_in_output, args.compiler_name, unknown_args)

@@ -1,0 +1,35 @@
+name: clang
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        clang_version: [ 17, 18, 19, 20, 21 ]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Clang ${{ matrix.clang_version }}
+        run: |
+          wget -qO- https://apt.llvm.org/llvm.sh | sudo bash -s -- ${{ matrix.clang_version }}
+
+      - name: Configure CMake
+        env:
+          CC: clang-${{ matrix.clang_version }}
+          CXX: clang++-${{ matrix.clang_version }}
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release -j $(nproc)
+
+      - name: Test
+        working-directory: build
+        run: ctest --output-on-failure -C Release -j $(nproc)

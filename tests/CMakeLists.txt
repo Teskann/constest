@@ -61,3 +61,7 @@ add_subdirectory(catch2 SYSTEM)
 add_subdirectory(gtest SYSTEM)
 add_subdirectory(doctest SYSTEM)
 add_subdirectory(boost_test SYSTEM)
+
+if (CONSTEST_RUN_BENCHMARKS)
+    add_subdirectory(benchmarks)
+endif ()

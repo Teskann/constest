@@ -3,7 +3,7 @@
 
 
 #include "../common/utils.h"
-#include "internal/asserts_doctest.hpp"
+#include <constest.hpp>
 #include <doctest/doctest.h>
 
 namespace constest::tests

@@ -28,22 +28,22 @@ TEST_CASE("Example test case")
     <tr>
       <td>✅ <a href="https://github.com/google/googletest">Google Test</a></td>
       <td>👉 <a href="./tests/gtest/test_gtest.cpp">Example</a></td>
-      <td>📃 <a href="doc/gtest.md">Documentation</a></td>
+      <td>📃 <a href="doc/gtest.md">Using ConsTest with Google Test</a></td>
     </tr>
     <tr>
       <td>✅ <a href="https://github.com/catchorg/Catch2">Catch2</a></td>
       <td>👉 <a href="./tests/catch2/test_catch2.cpp">Example</a></td>
-      <td>📃 <a href="doc/catch2.md">Documentation</a></td>
+      <td>📃 <a href="doc/catch2.md">Using ConsTest with Catch2</a></td>
     </tr>
     <tr>
       <td>✅ <a href="https://github.com/onqtam/doctest">Doctest</a></td>
       <td>👉 <a href="./tests/doctest/test_doctest.cpp">Example</a></td>
-      <td>📃 <a href="doc/doctest.md">Documentation</a></td>
+      <td>📃 <a href="doc/doctest.md">Using ConsTest with Doctest</a></td>
     </tr>
     <tr>
       <td>✅ <a href="https://github.com/boostorg/test">Boost.Test</a></td>
       <td>👉 <a href="./tests/boost_test/test_boost.cpp">Example</a></td>
-      <td>📃 <a href="doc/boost.md">Documentation</a></td>
+      <td>📃 <a href="doc/boost.md">Using ConsTest with Boost.Test</a></td>
     </tr>
   </tbody>
 </table>
@@ -79,8 +79,9 @@ TEST_CASE("Example test case")
 {
     CONSTEXPR_SECTION("Addition")
     {
-        CONSTEXPR_REQUIRE(1 + 1 == 2);
-        CONSTEXPR_REQUIRE(2 + 2 == 5); // ❌ compilation error
+        int a = 2;
+        CONSTEXPR_REQUIRE(a * a == 4);
+        CONSTEXPR_REQUIRE(a + a == 5); // ❌ compilation error
     };
 }
 ```
@@ -88,8 +89,8 @@ TEST_CASE("Example test case")
 ### Test transient expressions at compile time
 
 ```c++
-// GTest example
-TEST(example_tests, non_transient_constexpr_evaluation)
+// Google Test example
+TEST(example_tests, transient_constexpr_evaluation)
 {
     CONSTEXPR_SECTION("std::sort and std::find")
     {
@@ -108,7 +109,7 @@ TEST(example_tests, non_transient_constexpr_evaluation)
 ### Catch Undefined Behaviors at compile time
 
 ```c++
-// GTest example
+// Google Test example
 TEST(example_tests, various_undefined_behavior) {
     CONSTEXPR_SECTION("Out of bounds") {
         std::vector vec = {1, 2, 3};
@@ -138,7 +139,7 @@ TEST(example_tests, various_undefined_behavior) {
 ### Catch memory leaks at compile time
 
 ```c++
-// GTest example
+// Google Test example
 TEST(example_tests, memory_leaks)
 {
     CONSTEXPR_SECTION("new, no delete")
@@ -169,6 +170,22 @@ because a call to a `constexpr` function [might give different results at runtim
 
 ---
 
+## Overhead
+
+As expected, ConsTest adds some overhead to your tests. The amount of overhead depends heavily on
+the functions being tested, since the compiler needs to evaluate them at compile time.
+
+However, the compile-time overhead may not be particularly high, depending on what is being tested. For example, when
+compiling ConsTest's own tests, we observe the following results. Running tests at compile time increases compilation
+time by approximately 10–15%. This is less than one could expect. On the other hand,
+runtime overhead is negligible, even on very fast tested functions.
+
+![Benchmark Results](tests/benchmarks/benchmark_results.png)
+
+For more details about these benchmarks, check out the [benchmarking documentation](tests/benchmarks/README.md).
+
+---
+
 ## 📋 Prerequisites
 
 - A compiler supporting C++20, especially [
@@ -181,7 +198,7 @@ What you can test in ConsTest depends on your compiler and the C++ standard vers
 ### Using CPM (CMake Package Manager)
 
 ```cmake
-CPMAddPackage("gh:teskann/constest@1.0.0")
+CPMAddPackage("gh:teskann/constest@0.1.0")
 target_link_libraries(your_target PRIVATE constest)
 
 # Configure ConsTest for your testing framework

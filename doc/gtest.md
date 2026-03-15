@@ -87,10 +87,6 @@ TEST(GTestConstexpr, EqualityComparisons)
 > [!WARNING]
 > You should not keep `CONSTEXPR_SECTION_DEBUG` in production code, this should be used only for debugging purposes.
 
-At runtime, the `CONSTEXPR_SECTION_DEBUG` will be transformed into a `SCOPED_TRACE` with the same description
-prefixed
-by `[WARNING - Debugging a CONSTEXPR_SECTION] `.
-
 ## Supported Google Test versions
 
 Any version of Google Test supporting the macros above should work.

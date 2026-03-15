@@ -3,8 +3,8 @@
 
 
 #include "../common/utils.h"
-#include "internal/asserts_boost_test.hpp"
 #include <boost/test/unit_test.hpp>
+#include <constest.hpp>
 
 namespace constest::tests
 {

@@ -3,8 +3,8 @@
 
 
 #include "../common/utils.h"
-#include "internal/asserts_catch.hpp"
 #include <catch2/catch_test_macros.hpp>
+#include <constest.hpp>
 
 namespace constest::tests
 {

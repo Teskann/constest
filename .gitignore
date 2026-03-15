@@ -1,4 +1,6 @@
 build/
 cmake-build-debug/
+build_benchmark/
+
 .idea
 .venv

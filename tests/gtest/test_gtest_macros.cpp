@@ -3,7 +3,6 @@
 
 
 #include "../common/utils.h"
-#include "internal/asserts_gtest.hpp"
 #include <constest.hpp>
 #include <gtest/gtest.h>
 

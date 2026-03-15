@@ -1,0 +1,179 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_increment:
+        description: 'Version increment type'
+        required: true
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Bump version and push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          default_bump: ${{ github.event.inputs.version_increment }}
+          release_branches: master,main
+
+      - name: Update version in files
+        run: |
+          NEW_VERSION="${{ steps.tag_version.outputs.new_version }}"
+
+          # Update conanfile.py
+          sed -i "s/version = \"[0-9]*\.[0-9]*\.[0-9]*\"/version = \"$NEW_VERSION\"/" conanfile.py
+
+          # Update README.md
+          sed -i "s/constest@[0-9]*\.[0-9]*\.[0-9]*/constest@$NEW_VERSION/" README.md
+          sed -i "s|constest/[0-9]*\.[0-9]*\.[0-9]*|constest/$NEW_VERSION|" README.md
+
+          # Update tests/conan/conanfile.txt
+          sed -i "s/constest\/[0-9]*\.[0-9]*\.[0-9]*/constest\/$NEW_VERSION/" tests/conan/conanfile.txt
+
+      - name: Create release zip
+        run: |
+          mkdir -p temp-zip/constest
+          cp -r constest LICENSE.md README.md CMakeLists.txt temp-zip/constest/
+          cd temp-zip
+          zip -r ../constest.zip constest
+          cd ..
+          rm -rf temp-zip
+
+      - name: Generate SHA256
+        id: sha256
+        run: |
+          SHA256=$(sha256sum constest.zip | awk '{print $1}')
+          echo "sha256=$SHA256" >> $GITHUB_OUTPUT
+          echo "$SHA256  constest.zip" > constest.zip.sha256
+          cat constest.zip.sha256
+
+      - name: Update conandata.yml
+        run: |
+          NEW_VERSION="${{ steps.tag_version.outputs.new_version }}"
+          NEW_TAG="${{ steps.tag_version.outputs.new_tag }}"
+          SHA256="${{ steps.sha256.outputs.sha256 }}"
+
+          # Add new version entry at the top of sources section
+          cat > temp_conandata.yml << EOF
+          sources:
+            "$NEW_VERSION":
+              url: "https://github.com/Teskann/constest/releases/download/$NEW_TAG/constest.zip"
+              sha256: "$SHA256"
+          EOF
+
+          # Append existing entries (skip the "sources:" line)
+          tail -n +2 conandata.yml >> temp_conandata.yml
+          mv temp_conandata.yml conandata.yml
+
+      - name: Commit version updates
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add conanfile.py README.md conandata.yml tests/conan/conanfile.txt
+          git commit -m "chore: bump version to ${{ steps.tag_version.outputs.new_version }}"
+          git push origin HEAD:master
+
+      - name: Move tag to new commit
+        run: |
+          git tag -f ${{ steps.tag_version.outputs.new_tag }}
+          git push -f origin ${{ steps.tag_version.outputs.new_tag }}
+
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.tag_version.outputs.new_tag }}
+          name: Release ${{ steps.tag_version.outputs.new_tag }}
+          body: ${{ steps.tag_version.outputs.changelog }}
+          artifacts: "constest.zip,constest.zip.sha256"
+          artifactContentType: application/zip
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build
+
+      - name: Install Conan
+        run: |
+          pip install conan
+
+      - name: Detect Conan profile
+        run: conan profile detect --force
+
+      - name: Create Conan package
+        run: conan create . --build=missing -s build_type=Release -s compiler.cppstd=20
+
+      - name: Build test package
+        working-directory: tests/conan
+        run: |
+          conan install . --build=missing -s build_type=Release -s compiler.cppstd=20
+          cmake --preset conan-release
+          cmake --build --preset conan-release
+
+      - name: Run test package
+        working-directory: tests/conan
+        run: ./build/Release/test_constest_with_conan
+
+      - name: Clone Conan Center Index fork
+        run: |
+          git clone --depth 1 https://x-access-token:${{ secrets.CONAN_CENTER_TOKEN }}@github.com/teskann/conan-center-index.git /tmp/conan-center-index
+          cd /tmp/conan-center-index
+          git config user.name "teskann"
+          git config user.email "teskann-dev@protonmail.com"
+
+      - name: Prepare Conan recipe
+        run: |
+          NEW_VERSION="${{ steps.tag_version.outputs.new_version }}"
+          RECIPE_DIR="/tmp/conan-center-index/recipes/constest"
+
+          # Create recipe directory structure
+          mkdir -p "$RECIPE_DIR/all/test_package"
+
+          # Copy conanfile.py and conandata.yml
+          cp conanfile.py "$RECIPE_DIR/all/"
+          cp conandata.yml "$RECIPE_DIR/all/"
+
+          # Copy test package files
+          cp tests/conan/conanfile.txt "$RECIPE_DIR/all/test_package/conanfile.py"
+          cp tests/conan/CMakeLists.txt "$RECIPE_DIR/all/test_package/"
+          cp tests/conan/test.cpp "$RECIPE_DIR/all/test_package/"
+
+          # Create or update config.yml for the recipe
+          if [ -f "$RECIPE_DIR/config.yml" ]; then
+            # Add new version to existing config.yml
+            sed -i "/^versions:/a\\  \"$NEW_VERSION\":\\n    folder: all" "$RECIPE_DIR/config.yml"
+          else
+            # Create new config.yml
+            cat > "$RECIPE_DIR/config.yml" << EOF
+          versions:
+            "$NEW_VERSION":
+              folder: all
+          EOF
+          fi
+
+      - name: Commit and push to Conan Center Index fork
+        run: |
+          cd /tmp/conan-center-index
+          git add recipes/constest
+          git commit -m "Add constest/${{ steps.tag_version.outputs.new_version }}"
+          git push origin master

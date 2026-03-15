@@ -9,7 +9,24 @@ target_include_directories(constest INTERFACE
         $<INSTALL_INTERFACE:constest>
 )
 
-if (PROJECT_IS_TOP_LEVEL)
+# Installation
+install(TARGETS constest
+        EXPORT constestTargets
+        INCLUDES DESTINATION constest
+)
+
+install(DIRECTORY constest/
+        DESTINATION constest
+        FILES_MATCHING PATTERN "*.hpp"
+)
+
+install(EXPORT constestTargets
+        FILE constestTargets.cmake
+        NAMESPACE constest::
+        DESTINATION lib/cmake/constest
+)
+
+if (PROJECT_IS_TOP_LEVEL AND NOT DEFINED CONAN_EXPORTED)
     if (NOT DEFINED CMAKE_CXX_STANDARD)
         set(CMAKE_CXX_STANDARD 20)
     endif ()

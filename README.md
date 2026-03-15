@@ -5,6 +5,7 @@
 [![Test MSVC](https://github.com/Teskann/constest/actions/workflows/test_msvc.yml/badge.svg)](https://github.com/Teskann/constest/actions/workflows/test_msvc.yml)
 [![Test Framework Versions](https://github.com/Teskann/constest/actions/workflows/test_framework_versions.yml/badge.svg)](https://github.com/Teskann/constest/actions/workflows/test_framework_versions.yml)
 [![C++ Versions](https://github.com/Teskann/constest/actions/workflows/cpp_version.yml/badge.svg)](https://github.com/Teskann/constest/actions/workflows/cpp_version.yml)
+[![CPM](https://github.com/Teskann/constest/actions/workflows/cpm.yml/badge.svg)](https://github.com/Teskann/constest/actions/workflows/cpm.yml)
 
 **C++20 library that allows you to test your code at compile time. It's an extension of popular testing
 frameworks.**
@@ -198,11 +199,33 @@ What you can test in ConsTest depends on your compiler and the C++ standard vers
 ### Using CPM (CMake Package Manager)
 
 ```cmake
-CPMAddPackage("gh:teskann/constest@0.1.0")
+CPMAddPackage("gh:teskann/constest@0.0.0")
 target_link_libraries(your_target PRIVATE constest)
 
 # Configure ConsTest for your testing framework
 target_compile_definitions(your_target PRIVATE CONSTEST_CONFIG_XXX)
+```
+
+### Using Conan
+
+conanfile.txt:
+
+```conanfile.txt
+[requires]
+constest/0.0.0
+
+[generators]
+CMakeDeps
+CMakeToolchain
+
+[layout]
+cmake_layout
+```
+
+CMakeLists.txt:
+
+```CMakeLists.txt
+target_link_libraries(my_target PRIVATE constest::constest)
 ```
 
 ## 🤝 Contributing

@@ -199,7 +199,7 @@ What you can test in ConsTest depends on your compiler and the C++ standard vers
 ### Using CPM (CMake Package Manager)
 
 ```cmake
-CPMAddPackage("gh:teskann/constest@0.0.0")
+CPMAddPackage("gh:teskann/constest@1.0.0")
 target_link_libraries(your_target PRIVATE constest)
 
 # Configure ConsTest for your testing framework
@@ -212,7 +212,7 @@ conanfile.txt:
 
 ```conanfile.txt
 [requires]
-constest/0.0.0
+constest/1.0.0
 
 [generators]
 CMakeDeps

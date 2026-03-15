@@ -1,5 +1,5 @@
 [requires]
-constest/0.1.0
+constest/1.0.0
 gtest/1.14.0
 
 [generators]

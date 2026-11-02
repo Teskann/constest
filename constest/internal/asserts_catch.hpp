@@ -5,14 +5,23 @@
 
 #include "constest_asserts.hpp"
 #include "constexpr_section.hpp"
+#include <catch2/catch_version_macros.hpp>
+
+#if 3 < CATCH_VERSION_MAJOR || (3 == CATCH_VERSION_MAJOR && 15 <= CATCH_VERSION_MINOR)
+    #define CONSTEST_INTERNAL_CATCH_HAS_CONSTEXPR_MATCHERS 1
+#else
+    #define CONSTEST_INTERNAL_CATCH_HAS_CONSTEXPR_MATCHERS 0
+#endif
 
 #define CONSTEXPR_REQUIRE(...)       CONSTEST_INTERNAL_ASSERT(__VA_ARGS__, REQUIRE(__VA_ARGS__))
 #define CONSTEXPR_REQUIRE_FALSE(...) CONSTEST_INTERNAL_ASSERT_NOT(__VA_ARGS__, REQUIRE_FALSE(__VA_ARGS__))
 #define CONSTEXPR_CHECK(...)         CONSTEST_INTERNAL_ASSERT(__VA_ARGS__, CHECK(__VA_ARGS__))
 #define CONSTEXPR_CHECK_FALSE(...)   CONSTEST_INTERNAL_ASSERT_NOT(__VA_ARGS__, CHECK_FALSE(__VA_ARGS__))
 
-#define CONSTEXPR_REQUIRE_THAT(target, matcher)   CONSTEST_INTERNAL_ASSERT_IMPL(target, REQUIRE_THAT(target, matcher), matcher.match(target))
-#define CONSTEXPR_CHECK_THAT(target, matcher)   CONSTEST_INTERNAL_ASSERT_IMPL(target, CHECK_THAT(target, matcher), matcher.match(target))
+#if CONSTEST_INTERNAL_CATCH_HAS_CONSTEXPR_MATCHERS
+    #define CONSTEXPR_REQUIRE_THAT(target, matcher) CONSTEST_INTERNAL_ASSERT_IMPL(target, REQUIRE_THAT(target, matcher), matcher.match(target))
+    #define CONSTEXPR_CHECK_THAT(target, matcher)   CONSTEST_INTERNAL_ASSERT_IMPL(target, CHECK_THAT(target, matcher), matcher.match(target))
+#endif
 
 #define CONSTEXPR_SECTION(...) SECTION(CONSTEST_INTERNAL_PASSED_AT_COMPILE_TIME __VA_ARGS__) CONSTEST_INTERNAL_CONSTEXPR_SECTION_IMPL
 

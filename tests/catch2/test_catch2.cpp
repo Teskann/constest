@@ -383,6 +383,7 @@ TEST_CASE("Catch2 non-transient complex containers", "[catch2][complex]")
     };
 }
 
+#if CONSTEST_INTERNAL_CATCH_HAS_CONSTEXPR_MATCHERS
 TEST_CASE("Catch2 CONSTEXPR_REQUIRE_THAT tests", "[catch2][require_that]")
 {
     CONSTEXPR_SECTION("Some range matchers")
@@ -400,3 +401,4 @@ TEST_CASE("Catch2 CONSTEXPR_CHECK_THAT tests", "[catch2][check_that]")
         CONSTEXPR_CHECK_THAT(std::vector<int>{ 1337 }, !Catch::Matchers::IsEmpty());
     };
 }
+#endif

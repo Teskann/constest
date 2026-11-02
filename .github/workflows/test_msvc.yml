@@ -16,6 +16,9 @@ jobs:
           - os: windows-2022
             vs_version: '17 2022'
 
+          - os: windows-latest
+            vs_version: '18 2026'
+
     steps:
       - uses: actions/checkout@v4
 
